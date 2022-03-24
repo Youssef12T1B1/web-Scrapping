@@ -25,6 +25,7 @@ const PORT = require("./config/.env").PORT || 5000;
     await page.waitFor(1000);
     await page.click(".bRkwoU button");
 
+    // All Catrgories from the navbar of the homepage
     const Categories = await page.$$eval(".fCIBKX", (e) =>
       e.slice(0, 5).map((a) => {
         return {
@@ -34,9 +35,11 @@ const PORT = require("./config/.env").PORT || 5000;
       })
     );
     // console.log(Categories);
+
+    // working with 1 Subcategory
     await page.goto(Categories[1].url);
     await page.click(".bJwUkd");
-    const Cat = await page.$$eval(".bOaaXv", (e) =>
+    const Subcategory = await page.$$eval(".bOaaXv", (e) =>
       e.slice(0, 9).map((a) => {
         return {
           title: a.innerText,
@@ -46,8 +49,9 @@ const PORT = require("./config/.env").PORT || 5000;
     );
     // console.log(Cat[1]);
 
-    await page.goto(Cat[0].url);
-    const CatCat = await page.$$eval(".eFdtKw", (e) =>
+    // working with 3 subs of the Subcategory
+    await page.goto(Subcategory[0].url);
+    const subofsub = await page.$$eval(".eFdtKw", (e) =>
       e.slice(4, 7).map((a) => {
         return {
           title: a.innerText,
@@ -57,14 +61,18 @@ const PORT = require("./config/.env").PORT || 5000;
     );
     // console.log(CatCat);
 
+    // collecting data from the 3 Subcategory
     for (k = 0; k < 3; ++k) {
-      await page.goto(CatCat[k].url);
+      await page.goto(subofsub[k].url);
       await autoScroll(page);
 
       const title = await page.$$eval(".doYUxh", (e) =>
         e.slice(0, 2).map((a) => a.innerText.split(",")[0])
       );
+
       // console.log(title);
+
+      //the products specifications
       const specs = await page.$$eval(".hAlAEv", (e) =>
         e.slice(0, 2).map((a) => {
           return {
@@ -73,6 +81,8 @@ const PORT = require("./config/.env").PORT || 5000;
         })
       );
       // console.log(specs);
+
+      // Convert Array to Object
       const speec = [];
       let key = null;
       let obj = {};
@@ -85,17 +95,21 @@ const PORT = require("./config/.env").PORT || 5000;
         speec.push(obj);
         obj = {};
       }
+
       // console.log(speec);
 
+      //products Urls
       const url = await page.$$eval(".dRrAGE", (e) =>
         e.splice(0, 2).map((a) => a.href)
       );
       // console.log(url);
 
+      //products images
       const img = await page.$$eval(".gFoXlk picture img", (e) =>
-        e.map((a) => a.src)
+        e.splice(0, 2).map((a) => a.src)
       );
 
+      //more Info about the products
       const info = await page.$$eval(".erxCC", (e) =>
         e.splice(0, 2).map((a) => {
           return {
@@ -104,36 +118,38 @@ const PORT = require("./config/.env").PORT || 5000;
         })
       );
 
+      // const d1 = info[0].
+
+      //Showing  data in Table
       const titleTest = [];
       for (p = 0; p < title.length; ++p) {
-        titleTest.push({
+        // titleTest.push({
+        //   title: title[p],
+        //   link: url[p],
+        //   Delivery: info[p].infos[0],
+        //   price: info[p].infos[info[p].infos.length - 2],
+        //   shipping: info[p].infos[info[p].infos.length - 1],
+        //   imglink: img[p],
+        //   specs: speec[p],
+        // });
+        // console.log(titleTest);
+        // save data to the database (Mongodb)
+        const product = await new Product({
           title: title[p],
-          link: url[p],
+          url: url[p],
+          image: img[p],
           Delivery: info[p].infos[0],
-          price: info[p].infos[info[p].infos.length - 2],
           shipping: info[p].infos[info[p].infos.length - 1],
-          imglink: img[p],
+          price: +info[p].infos[info[p].infos.length - 2],
           specs: speec[p],
         });
-        //   const product = await new Product({
-        //     title: title[p],
-        //     url: url[p],
-        //     image: img[p],
-        //     Delivery: info[p].infos[0],
-        //     shipping: info[p].infos[info[p].infos.length - 1],
-        //     price: +info[p].infos[info[p].infos.length - 2],
-        //     specs: speec[p],
-        //   });
-        //   product
-        //     .save()
-        //     .then((res) => console.log(res))
-        //     .catch((err) => console.log(err));
+        product
+          .save()
+          .then((res) => console.log(res))
+          .catch((err) => console.log(err));
       }
 
-      // console.log(titleTest);
-      console.log(
-        "********************************************************************************************************************"
-      );
+      console.log("*************************************");
     }
 
     await page.screenshot({
@@ -149,6 +165,7 @@ const PORT = require("./config/.env").PORT || 5000;
   }
 })();
 
+//Scroll down to collect Product images
 async function autoScroll(page) {
   await page.evaluate(async () => {
     await new Promise((resolve, reject) => {
