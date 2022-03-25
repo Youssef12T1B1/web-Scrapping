@@ -54,7 +54,8 @@ const PORT = require("./config/.env").PORT || 5000;
     const subofsub = await page.$$eval(".eFdtKw", (e) =>
       e.slice(4, 7).map((a) => {
         return {
-          title: a.innerText,
+          title: a.innerText.split("(")[0],
+          count: a.innerText.split("(")[1].match(/(([^)]+))/)[1],
           url: a.href,
         };
       })
@@ -63,6 +64,8 @@ const PORT = require("./config/.env").PORT || 5000;
 
     // collecting data from the 3 Subcategory
     for (k = 0; k < 3; ++k) {
+      // accessing the subofsub page
+
       await page.goto(subofsub[k].url);
       await autoScroll(page);
 
@@ -118,26 +121,29 @@ const PORT = require("./config/.env").PORT || 5000;
         })
       );
 
-      // const d1 = info[0].
-
       //Showing  data in Table
-      const titleTest = [];
+      // const titleTest = [];
       for (p = 0; p < title.length; ++p) {
-        // titleTest.push({
-        //   title: title[p],
-        //   link: url[p],
-        //   Delivery: info[p].infos[0],
-        //   price: info[p].infos[info[p].infos.length - 2],
-        //   shipping: info[p].infos[info[p].infos.length - 1],
-        //   imglink: img[p],
-        //   specs: speec[p],
-        // });
-        // console.log(titleTest);
+        //   titleTest.push({
+        //     Categorie: subofsub[k].title.split("(")[0],
+        //     count: subofsub[k].title.split("(")[1],
+        //     title: title[p],
+        //     link: url[p],
+        //     Delivery: info[p].infos[0],
+        //     price: info[p].infos[info[p].infos.length - 2],
+        //     shipping: info[p].infos[info[p].infos.length - 1],
+        //     imglink: img[p],
+        //     specs: speec[p],
+        //   });
+
+        //   console.log(titleTest);
         // save data to the database (Mongodb)
         const product = await new Product({
           title: title[p],
           url: url[p],
           image: img[p],
+          ProductCount: +subofsub[k].count,
+          Category: subofsub[k].title.replace(/\s/g, ""),
           Delivery: info[p].infos[0],
           shipping: info[p].infos[info[p].infos.length - 1],
           price: +info[p].infos[info[p].infos.length - 2],

@@ -13,6 +13,8 @@ const productSchema = new mongoose.Schema(
       type: String,
       required: true,
     },
+    ProductCount: Number,
+    Category: String,
     Delivery: String,
     price: Number,
     shipping: String,
