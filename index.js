@@ -20,9 +20,12 @@ const PORT = require("./config/.env").PORT || 5000;
 
     await page.goto(link, { waitUntil: "domcontentloaded" });
 
+    // skip cookies
     await page.waitForSelector("#pwa-consent-layer-accept-all-button");
     await page.click("#pwa-consent-layer-accept-all-button");
     await page.waitFor(1000);
+
+    // click on the 'All Categories' nav to fetch the Main Categories
     await page.click(".bRkwoU button");
 
     // All Catrgories from the navbar of the homepage
@@ -70,14 +73,14 @@ const PORT = require("./config/.env").PORT || 5000;
       await autoScroll(page);
 
       const title = await page.$$eval(".doYUxh", (e) =>
-        e.slice(0, 2).map((a) => a.innerText.split(",")[0])
+        e.slice(0, 12).map((a) => a.innerText.split(",")[0])
       );
 
       // console.log(title);
 
       //the products specifications
       const specs = await page.$$eval(".hAlAEv", (e) =>
-        e.slice(0, 2).map((a) => {
+        e.slice(0, 12).map((a) => {
           return {
             specs: a.innerText.split("\n"),
           };
@@ -103,18 +106,18 @@ const PORT = require("./config/.env").PORT || 5000;
 
       //products Urls
       const url = await page.$$eval(".dRrAGE", (e) =>
-        e.splice(0, 2).map((a) => a.href)
+        e.splice(0, 12).map((a) => a.href)
       );
       // console.log(url);
 
       //products images
       const img = await page.$$eval(".gFoXlk picture img", (e) =>
-        e.splice(0, 2).map((a) => a.src)
+        e.splice(0, 12).map((a) => a.src)
       );
 
       //more Info about the products
       const info = await page.$$eval(".erxCC", (e) =>
-        e.splice(0, 2).map((a) => {
+        e.splice(0, 12).map((a) => {
           return {
             infos: a.innerText.split("\n"),
           };
@@ -122,37 +125,37 @@ const PORT = require("./config/.env").PORT || 5000;
       );
 
       //Showing  data in Table
-      // const titleTest = [];
+      const ProductTab = [];
       for (p = 0; p < title.length; ++p) {
-        //   titleTest.push({
-        //     Categorie: subofsub[k].title.split("(")[0],
-        //     count: subofsub[k].title.split("(")[1],
-        //     title: title[p],
-        //     link: url[p],
-        //     Delivery: info[p].infos[0],
-        //     price: info[p].infos[info[p].infos.length - 2],
-        //     shipping: info[p].infos[info[p].infos.length - 1],
-        //     imglink: img[p],
-        //     specs: speec[p],
-        //   });
-
-        //   console.log(titleTest);
-        // save data to the database (Mongodb)
-        const product = await new Product({
+        ProductTab.push({
+          Categorie: subofsub[k].title,
+          count: subofsub[k].count,
           title: title[p],
-          url: url[p],
-          image: img[p],
-          ProductCount: +subofsub[k].count,
-          Category: subofsub[k].title.replace(/\s/g, ""),
+          link: url[p],
           Delivery: info[p].infos[0],
+          price: info[p].infos[info[p].infos.length - 2],
           shipping: info[p].infos[info[p].infos.length - 1],
-          price: +info[p].infos[info[p].infos.length - 2],
+          imglink: img[p],
           specs: speec[p],
         });
-        product
-          .save()
-          .then((res) => console.log(res))
-          .catch((err) => console.log(err));
+        console.log(ProductTab);
+
+        // save data to the database (Mongodb)
+        // const product = await new Product({
+        //   title: title[p],
+        //   url: url[p],
+        //   image: img[p],
+        //   ProductCount: +subofsub[k].count,
+        //   Category: subofsub[k].title.replace(/\s/g, ""),
+        //   Delivery: info[p].infos[0],
+        //   shipping: info[p].infos[info[p].infos.length - 1],
+        //   price: +info[p].infos[info[p].infos.length - 2],
+        //   specs: speec[p],
+        // });
+        // product
+        //   .save()
+        //   .then((res) => console.log(res))
+        //   .catch((err) => console.log(err));
       }
 
       console.log("*************************************");
